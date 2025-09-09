@@ -1,0 +1,10 @@
+alembic init migrations
+
+alembic revision --autogenerate -m "initial tables" //Create a new migration file initial_tables
+
+alembic upgrade head #upgrades your DB to the last migration or apply migration
+
+python -m alembic upgrade head
+
+alembic downgrade -1 #downgrades your DB to the previous migration or unapply migration
+python -m alembic downgrade -1
