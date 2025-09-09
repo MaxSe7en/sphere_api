@@ -64,7 +64,7 @@
 #     session_name: Optional[str]
 
 #     class Config:
-#         orm_mode = True
+#         from_attributes = True
 
 
 # # ========== Sponsor ==========
@@ -77,7 +77,7 @@
 #     district: Optional[str]
 
 #     class Config:
-#         orm_mode = True
+#         from_attributes = True
 
 
 # # ========== Referral ==========
@@ -89,7 +89,7 @@
 #     name: Optional[str]
 
 #     class Config:
-#         orm_mode = True
+#         from_attributes = True
 
 
 # # ========== Bill History ==========
@@ -101,7 +101,7 @@
 #     importance: Optional[int]
 
 #     class Config:
-#         orm_mode = True
+#         from_attributes = True
 
 
 # # ========== Bill Text ==========
@@ -114,7 +114,7 @@
 #     state_link: Optional[str]
 
 #     class Config:
-#         orm_mode = True
+#         from_attributes = True
 
 
 # # ========== Calendar Event ==========
@@ -126,7 +126,7 @@
 #     description: Optional[str]
 
 #     class Config:
-#         orm_mode = True
+#         from_attributes = True
 
 
 # # ========== Bill (Main Schema) ==========
@@ -149,11 +149,11 @@
 #     calendar: List[CalendarEventBase] = []
 
 #     class Config:
-#         orm_mode = True
+#         from_attributes = True
 
 
 # schemas.py
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Optional, List, Dict
 from datetime import datetime, date
 
@@ -171,7 +171,7 @@ class Session(BaseModel):
     session_name: str
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class Sponsor(BaseModel):
     id: int
@@ -201,7 +201,7 @@ class Sponsor(BaseModel):
     state_federal: int
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class Referral(BaseModel):
     id: int
@@ -212,7 +212,7 @@ class Referral(BaseModel):
     name: str
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class BillHistory(BaseModel):
     id: int
@@ -223,7 +223,7 @@ class BillHistory(BaseModel):
     importance: int
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class BillText(BaseModel):
     id: int
@@ -239,7 +239,7 @@ class BillText(BaseModel):
     text_hash: str
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class CalendarEvent(BaseModel):
     id: int
@@ -252,7 +252,7 @@ class CalendarEvent(BaseModel):
     description: str
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class Sast(BaseModel):
     id: int
@@ -262,7 +262,7 @@ class Sast(BaseModel):
     sast_bill_id: int
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class Bill(BaseModel):
     id: int  # Changed from str to int
@@ -297,19 +297,28 @@ class Bill(BaseModel):
     sasts: Optional[List[Sast]] = None
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class BillOut(BaseModel):
-    bill_id: int
-    number: str
+    bill_id: int = Field(..., alias="id") # Changed from id to bill_id as is from db
+    number: str = Field(..., alias="bill_number")# Changed from bill_number to number as is from db
     change_hash: str
     url: str
     status_date: Optional[date]
     status: int
-    last_action_date: Optional[date]
-    last_action: Optional[str]
+    last_action_date: Optional[date] = None
+    last_action: Optional[str] = None
     title: str
     description: str
 
     class Config:
-        orm_mode = True
+        from_attributes = True
+        populate_by_name = True
+
+class PaginatedBills(BaseModel):
+    total: int
+    limit: int
+    offset: int
+    next_offset: Optional[int]
+    prev_offset: Optional[int]
+    bills: List[BillOut]

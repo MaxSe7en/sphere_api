@@ -138,7 +138,7 @@ class Session(Base):
 class Bill(Base):
     __tablename__ = "bills"
     id = Column(Integer, primary_key=True)  # bill_id from API
-    bill_number = Column(String, nullable=False)
+    bill_number = Column(String, nullable=False) #number from API
     change_hash = Column(String)  # For detecting updates
     title = Column(Text)
     description = Column(Text)

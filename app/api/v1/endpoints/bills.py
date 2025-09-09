@@ -40,11 +40,13 @@
 # routers/bills.py (Rewritten to handle full parsing, update detection with change_hash, and sub-models)
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, aliased
+from sqlalchemy import func, select
 from app.db.session import get_db
 from app.services.legiscan_service import legiscan
 from app.models import bills, posts, users
-from app.models import Bill
+from app.models.raw_bills_queries import get_state_bills_raw_model
+from app.models import Bill, BillHistory
 from app.schemas import schemas
 import datetime
 
@@ -280,19 +282,75 @@ async def get_bills_for_state(state: str, db: Session = Depends(get_db)):
     
     return db_bills
 
-@router.get("/state_bills/{state}", response_model=list[schemas.BillOut])
+@router.get("/state_bills/{state}", response_model=schemas.PaginatedBills)
 def get_state_bills(
     state: str,
-    limit: int = Query(10, ge=1, le=100),
+    limit: int = Query(100, ge=1, le=200),
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db)
 ):
-    query = db.query(Bill).filter(Bill.state == state)
+    # Subquery: find latest date per bill
+    subq = (
+        db.query(
+            BillHistory.bill_id,
+            func.max(BillHistory.date).label("latest_date")
+        )
+        .group_by(BillHistory.bill_id)
+        .subquery()
+    )
+
+    # Join bills with their latest history
+    query = (
+        db.query(
+            Bill,
+            BillHistory.date.label("last_action_date"),
+            BillHistory.action.label("last_action"),
+        )
+        .outerjoin(subq, Bill.id == subq.c.bill_id)
+        .outerjoin(
+            BillHistory,
+            (BillHistory.bill_id == subq.c.bill_id) &
+            (BillHistory.date == subq.c.latest_date)
+        )
+        .filter(Bill.state == state)
+    )
+
     total = query.count()
-    bills = query.offset(offset).limit(limit).all()
+    rows = query.offset(offset).limit(limit).all()
+
+    # Map into response
+    bills_out = []
+    for bill, last_date, last_action in rows:
+        bill_dict = schemas.BillOut.from_orm(bill).dict()
+        bill_dict["last_action_date"] = last_date
+        bill_dict["last_action"] = last_action
+        bills_out.append(bill_dict)
+
+    next_offset = offset + limit if offset + limit < total else None
+    prev_offset = offset - limit if offset - limit >= 0 else None
+
     return {
         "total": total,
         "limit": limit,
         "offset": offset,
-        "bills": bills
+        "next_offset": next_offset,
+        "prev_offset": prev_offset,
+        "bills": bills_out,
+    }
+
+
+@router.get("/state_bills_raw/{state}")
+def get_state_bills_raw(
+    state: str,
+    limit: int = Query(100, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+    db: Session = Depends(get_db)
+):
+    rows = get_state_bills_raw_model(db, state, limit, offset)
+
+    return {
+        "total": len(rows),  # you could also run COUNT(*) in a separate query
+        "limit": limit,
+        "offset": offset,
+        "bills": rows
     }
