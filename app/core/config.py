@@ -11,5 +11,6 @@ class Settings:
     ALGORITHM: str = os.getenv("ALGORITHM", "HS256")
     ACCESS_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 30))
     OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY")
+    OPENAI_ORGANIZATION: str = os.getenv("OPENAI_ORGANIZATION")
 
 settings = Settings()
