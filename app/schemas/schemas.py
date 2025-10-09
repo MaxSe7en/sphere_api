@@ -322,3 +322,8 @@ class PaginatedBills(BaseModel):
     next_offset: Optional[int]
     prev_offset: Optional[int]
     bills: List[BillOut]
+
+class StateBillCount(BaseModel):
+    state: str
+    name: str
+    active_bills: int

@@ -3,7 +3,8 @@ from fastapi import FastAPI
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
-from app.api.v1.endpoints import bills, users#, states, posts, auth
+from app.api.v1.endpoints import bills, users, states#, posts, auth
+from app.db.session import SessionLocal
 
 app = FastAPI(title="BillTracker API", version="1.0.0")
 
@@ -17,16 +18,32 @@ app.add_middleware(
 )
 
 
-# app = FastAPI(docs_url=None, redoc_url=None)#for production
-pref = "/api/v1"
-# Include routers
-app.include_router(users.router, prefix=pref)
-# app.include_router(auth.router, prefix="/auth", tags=["auth"])
-app.include_router(bills.router, prefix=f"{pref}/bills", tags=["bills"])
-# app.include_router(states.router, prefix="/states", tags=["states"])
-# app.include_router(posts.router, prefix="/posts", tags=["posts"])
-app.include_router(users.router, prefix=f"{pref}/users", tags=["users"])
 
+# app = FastAPI(docs_url=None, redoc_url=None)  # disable docs in production
+API_PREFIX = "/api/v1"
+# Health check (no prefix, always accessible)
+
+@app.get("/health", tags=["health"])
+def health_check():
+    try:
+        # check db connectivity
+        db = SessionLocal()
+        db.execute(text("SELECT 1"))  # lightweight query
+        db.close()
+        return {"status": "ok", "database": "connected"}
+    except Exception as e:
+        return {"status": "error", "database": str(e)}
+
+
+# Users
+app.include_router(users.router, prefix=f"{API_PREFIX}/users", tags=["Users"])
+
+# Bills
+app.include_router(bills.router, prefix=f"{API_PREFIX}/bills", tags=["Bills"])
+
+# States
+app.include_router(states.router, prefix=f"{API_PREFIX}/states_overview_count", tags=["States"])
 @app.get("/")
 async def root():
     return {"message": "BillTracker API is running!"}
+    

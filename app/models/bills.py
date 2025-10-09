@@ -142,12 +142,12 @@ class Bill(Base):
     change_hash = Column(String)  # For detecting updates
     title = Column(Text)
     description = Column(Text)
-    ai_summary = Column(Text)  # AI-generated plain-English summary
-    ai_impacts = Column(JSON)  # List of who/what affected
-    ai_pro_con = Column(JSON)  # Pro/con arguments
-    raw_data = Column(JSON)  # Full original API response for reference
-    last_updated = Column(DateTime)  # Derived from status_date or latest history date
-    status = Column(Integer)
+    ai_summary = Column(Text, nullable=True)  # AI-generated plain-English summary
+    ai_impacts = Column(JSON, nullable=True)  # List of who/what affected
+    ai_pro_con = Column(JSON, nullable=True)  # Pro/con arguments
+    raw_data = Column(JSON, nullable=True)  # Full original API response for reference
+    last_updated = Column(DateTime, nullable=True)  # Derived from status_date or latest history date
+    status = Column(Integer, nullable=True)
     status_date = Column(DateTime)
     state = Column(String)
     url = Column(String)
