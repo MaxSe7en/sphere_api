@@ -3,7 +3,7 @@ from fastapi import FastAPI
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
-from app.api.v1.endpoints import bills, users, states#, posts, auth
+from app.api.v1.endpoints import bills, users, states, ai#, posts, auth
 from app.db.session import SessionLocal
 
 app = FastAPI(title="BillTracker API", version="1.0.0")
@@ -43,6 +43,10 @@ app.include_router(bills.router, prefix=f"{API_PREFIX}/bills", tags=["Bills"])
 
 # States
 app.include_router(states.router, prefix=f"{API_PREFIX}/states_overview_count", tags=["States"])
+
+# AI summary
+app.include_router(ai.router, prefix="/api/v1/ai", tags=["AI"])
+
 @app.get("/")
 async def root():
     return {"message": "BillTracker API is running!"}
