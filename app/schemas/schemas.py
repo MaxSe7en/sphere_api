@@ -315,15 +315,46 @@ class BillOut(BaseModel):
         from_attributes = True
         populate_by_name = True
 
-class PaginatedBills(BaseModel):
-    total: int
-    limit: int
-    offset: int
-    next_offset: Optional[int]
-    prev_offset: Optional[int]
-    bills: List[BillOut]
+# class PaginatedBills(BaseModel):
+#     total: int
+#     limit: int
+#     offset: int
+#     next_offset: Optional[int]
+#     prev_offset: Optional[int]
+#     bills: List[BillOut]
+
+# class BillListItem(BaseModel):
+#     id: int
+#     title: Optional[str]
+#     status: Optional[int]
+#     last_action_date: Optional[datetime]
+#     last_action: Optional[str]
 
 class StateBillCount(BaseModel):
     state: str
     name: str
     active_bills: int
+    
+class StateBillCount(BaseModel):
+    state: str
+    name: str
+    active_bills: int
+
+class BillListItem(BaseModel):
+    id: int
+    title: Optional[str]
+    status: Optional[int]
+    last_action_date: Optional[datetime]
+    last_action: Optional[str]
+
+class PaginatedBills(BaseModel):
+    total: int
+    limit: int
+    offset: int
+    next_offset: Optional[int] = None
+    prev_offset: Optional[int] = None
+    bills: List[BillListItem]
+
+# For states endpoint
+class StateBillCountOut(StateBillCount):
+    pass

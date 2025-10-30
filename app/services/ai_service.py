@@ -1,6 +1,7 @@
 # app/services/ai_service.py
 from openai import OpenAI
 from app.core.config import settings
+from typing import Dict, Any, List
 
 # client = OpenAI(api_key=settings.OPENAI_ORGANIZATION)
 client = OpenAI(
@@ -114,3 +115,31 @@ def parse_ai_response(text: str):
         "impacts": parts[1].strip() if len(parts) > 1 else None,
         "pros_cons": parts[2].strip() if len(parts) > 2 else None,
     }
+
+async def generate_bill_ai(bill: Dict) -> Dict[str, Any]:
+    title = bill.get('title', '')
+    desc = bill.get('description', '')
+    # TODO: full text later
+    prompt = f"""Analyze US State Bill "{title}":
+
+    DESCRIPTION: {desc}
+
+    **ONLY JSON**:
+    {{
+    "summary": "Neutral 1-2 sentence summary",
+    "impacts": [
+        {{"group": "Taxpayers", "effect": "positive/negative/neutral", "why": "1 sentence"}},
+        {{"group": "Small Business", "effect": "...", "why": "..."}}
+    ],
+    "pros_cons": {{"pros": ["• Point 1", "• Point 2"], "cons": ["• Point 1"]}}
+    }}
+
+    Neutral • Factual • Concise • Key stakeholders only."""
+        
+    resp = await client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[{"role": "user", "content": prompt}],
+        response_format={"type": "json_object"},
+        max_tokens=800
+    )
+    return json.loads(resp.choices[0].message.content)

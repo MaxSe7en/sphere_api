@@ -1,6 +1,6 @@
 import httpx
 from app.core.config import settings
-
+from typing import Dict, Any
 class LegiScanService:
     def __init__(self):
         self.base_url = "https://api.legiscan.com"
@@ -25,4 +25,27 @@ class LegiScanService:
                 return response.json()
             return {"error": "Failed to fetch bills"}
 
+    async def get_master_list(self, state: str) -> Dict[str, Any]:
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            resp = await client.get(self.base_url, params={
+                "key": self.api_key,
+                "op": "getMasterList",
+                "state": state.upper()
+            })
+            data = resp.json()
+            if data.get("status") != "OK":
+                raise ValueError(f"LegiScan: {data}")
+            return data["masterlist"]
+
+    async def get_bill(self, bill_id: int) -> Dict[str, Any]:
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            resp = await client.get(self.base_url, params={
+                "key": self.api_key,
+                "op": "getBill",
+                "id": bill_id
+            })
+            data = resp.json()
+            if data.get("status") != "OK":
+                raise ValueError(f"LegiScan getBill failed: {data}")
+            return data
 legiscan = LegiScanService()
