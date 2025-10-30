@@ -154,7 +154,7 @@
 
 # schemas.py
 from pydantic import BaseModel, Field
-from typing import Optional, List, Dict
+from typing import Optional, List, Dict, Union
 from datetime import datetime, date
 
 class Session(BaseModel):
@@ -265,29 +265,29 @@ class Sast(BaseModel):
         from_attributes = True
 
 class Bill(BaseModel):
-    id: int  # Changed from str to int
+    id: int
     bill_number: str
-    change_hash: str
-    title: str
-    description: str
+    change_hash: Optional[str] = None  # ← Make Optional
+    title: Optional[str] = None
+    description: Optional[str] = None
     ai_summary: Optional[str] = None
-    ai_impacts: Optional[List[Dict]] = None
-    ai_pro_con: Optional[List[Dict]] = None
-    raw_data: Dict
+    ai_impacts: Optional[Union[List[Dict], str]] = None
+    ai_pro_con: Optional[Union[List[Dict], str]] = None
+    raw_data: Optional[Dict] = None  # ← Make Optional
     last_updated: Optional[datetime] = None
-    status: int  # Changed from str to int
+    status: Optional[int] = None  # ← Changed from int to Optional[int]
     status_date: Optional[datetime] = None
-    state: str
-    url: str
-    state_link: str
-    completed: int
-    bill_type: str
-    bill_type_id: int
-    body: str
-    body_id: int
-    current_body: str
-    current_body_id: int
-    pending_committee_id: int
+    state: Optional[str] = None
+    url: Optional[str] = None
+    state_link: Optional[str] = None  # ← Make Optional
+    completed: Optional[int] = None   # ← Make Optional
+    bill_type: Optional[str] = None   # ← Make Optional
+    bill_type_id: Optional[int] = None  # ← Make Optional
+    body: Optional[str] = None        # ← Make Optional
+    body_id: Optional[int] = None     # ← Make Optional
+    current_body: Optional[str] = None  # ← Make Optional
+    current_body_id: Optional[int] = None  # ← Make Optional
+    pending_committee_id: Optional[int] = None  # ← Make Optional
     session: Optional[Session] = None
     sponsors: Optional[List[Sponsor]] = None
     referrals: Optional[List[Referral]] = None
@@ -358,3 +358,41 @@ class PaginatedBills(BaseModel):
 # For states endpoint
 class StateBillCountOut(StateBillCount):
     pass
+
+
+
+
+
+
+###################### USER ###########
+class UserCreate(BaseModel):
+    email: str
+    password: str
+    full_name: str
+
+class UserLogin(BaseModel):
+    email: str
+    password: str
+
+class UserOut(BaseModel):
+    id: int
+    email: str
+    full_name: str | None = None
+    class Config:
+        from_attributes = True
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+
+class WatchlistItem(BaseModel):
+    bill_id: int
+    title: str  # From bill
+
+class WatchlistOut(BaseModel):
+    watchlist: List[WatchlistItem]
+
+
+
+
+

@@ -2,6 +2,7 @@
 from openai import OpenAI
 from app.core.config import settings
 from typing import Dict, Any, List
+import json
 
 # client = OpenAI(api_key=settings.OPENAI_ORGANIZATION)
 client = OpenAI(
@@ -136,8 +137,8 @@ async def generate_bill_ai(bill: Dict) -> Dict[str, Any]:
 
     Neutral • Factual • Concise • Key stakeholders only."""
         
-    resp = await client.chat.completions.create(
-        model="gpt-4o-mini",
+    resp = client.chat.completions.create(
+        model="mistralai/mistral-7b-instruct",
         messages=[{"role": "user", "content": prompt}],
         response_format={"type": "json_object"},
         max_tokens=800

@@ -1,9 +1,9 @@
 # app/api/v1/endpoints/ai.py
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, Query, HTTPException
 from sqlalchemy.orm import Session
 from app.db.session import get_db
 from app.models import Bill
-from app.services.ai_service import generate_openai_summary
+from app.services.ai_service import generate_openai_summary, generate_bill_ai
 from app.services.ai_generator_service import generate_bill_ai_summary
 from app.services.ai_enrichment_service import enrich_bill_with_ai
 
@@ -68,3 +68,29 @@ async def regenerate_bill_ai_data(
     """
     result = await enrich_bill_with_ai(db, bill_id, mode)
     return result
+
+
+# ############ NEW ENDPOINTS ##############################
+
+@router.get("/{id}")
+async def ai_analysis(
+    id: int, 
+    db: Session = Depends(get_db), 
+    regen: bool = Query(False)
+):
+    bill = db.query(Bill).filter(Bill.id == id).first()
+    if not bill:
+        raise HTTPException(404)
+    
+    if regen or not bill.ai_summary:
+        ai = await generate_bill_ai(bill.__dict__)
+        bill.ai_summary = ai['summary']
+        bill.ai_impacts = ai['impacts']
+        bill.ai_pro_con = ai['pros_cons']
+        db.commit()
+    
+    return {
+        "summary": bill.ai_summary,
+        "impacts": bill.ai_impacts,
+        "pros_cons": bill.ai_pro_con
+    }

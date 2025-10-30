@@ -3,8 +3,10 @@ from fastapi import FastAPI
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
-from app.api.v1.endpoints import bills, users, states, ai#, posts, auth
+from app.api.v1.endpoints import bills, users, states, ai, watchlist#, posts, auth
 from app.db.session import SessionLocal
+from app.api.v1.endpoints import ai
+
 
 app = FastAPI(title="BillTracker API", version="1.0.0")
 
@@ -38,6 +40,8 @@ def health_check():
 # Users
 app.include_router(users.router, prefix=f"{API_PREFIX}/users", tags=["Users"])
 
+app.include_router(watchlist.router, prefix=f"{API_PREFIX}/users/me", tags=["Watchlist"])
+
 # Bills
 app.include_router(bills.router, prefix=f"{API_PREFIX}/bills", tags=["Bills"])
 
@@ -46,6 +50,7 @@ app.include_router(states.router, prefix=f"{API_PREFIX}/states_overview_count", 
 
 # AI summary
 app.include_router(ai.router, prefix="/api/v1/ai", tags=["AI"])
+
 
 @app.get("/")
 async def root():
